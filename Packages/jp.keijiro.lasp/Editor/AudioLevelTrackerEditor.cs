@@ -13,6 +13,7 @@ namespace Lasp.Editor
 
         SerializedProperty _channel;
         SerializedProperty _filterType;
+        SerializedProperty _filterFreq;
         SerializedProperty _smoothFall;
         SerializedProperty _fallSpeed;
 
@@ -30,6 +31,7 @@ namespace Lasp.Editor
 
             _channel      = finder["_channel"];
             _filterType   = finder["_filterType"];
+            _filterFreq   = finder["_filterFreq"];
             _smoothFall   = finder["_smoothFall"];
             _fallSpeed    = finder["_fallSpeed"];
 
@@ -56,6 +58,7 @@ namespace Lasp.Editor
             // Input settings
             EditorGUILayout.PropertyField(_channel);
             EditorGUILayout.PropertyField(_filterType);
+            EditorGUILayout.PropertyField(_filterFreq);
             _dynamicRange.ShowGUI();
             EditorGUILayout.PropertyField(_smoothFall);
 
