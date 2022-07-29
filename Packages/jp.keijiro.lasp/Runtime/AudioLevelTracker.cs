@@ -36,10 +36,10 @@ namespace Lasp
             set => _filterType = value; }
             
         // Filter type selection
-        [SerializeField] float _filterType = 900.0f;
-        public FilterType filterType
-          { get => _filterType;
-            set => _filterType = value; }
+        [SerializeField] float _filterFreq = 900.0f;
+        public FilterFreq filterFreq
+          { get => _filterFreq;
+            set => _filterFreq = value; }
 
         // Auto gain control switch
         [SerializeField] bool _autoGain = true;
