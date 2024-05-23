@@ -11,12 +11,11 @@ namespace Lasp.Editor
     {
         #region Private members
 
-        SerializedProperty _channel;
+        SerializedProperty _source;
         SerializedProperty _filterType;
         SerializedProperty _smoothFall;
         SerializedProperty _fallSpeed;
 
-        DeviceSelector _deviceSelector;
         DynamicRangeEditor _dynamicRange;
         PropertyBinderEditor _propertyBinderEditor;
 
@@ -28,12 +27,11 @@ namespace Lasp.Editor
         {
             var finder = new PropertyFinder(serializedObject);
 
-            _channel      = finder["_channel"];
+            _source       = finder["_source"];
             _filterType   = finder["_filterType"];
             _smoothFall   = finder["_smoothFall"];
             _fallSpeed    = finder["_fallSpeed"];
 
-            _deviceSelector = new DeviceSelector(serializedObject);
             _dynamicRange = new DynamicRangeEditor(serializedObject);
             _propertyBinderEditor
               = new PropertyBinderEditor(finder["_propertyBinders"]);
@@ -49,12 +47,8 @@ namespace Lasp.Editor
         {
             serializedObject.Update();
 
-            // Device selection (disabled during play mode)
-            using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
-                _deviceSelector.ShowGUI();
-
             // Input settings
-            EditorGUILayout.PropertyField(_channel);
+            EditorGUILayout.PropertyField(_source);
             EditorGUILayout.PropertyField(_filterType);
             _dynamicRange.ShowGUI();
             EditorGUILayout.PropertyField(_smoothFall);

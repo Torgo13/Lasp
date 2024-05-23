@@ -33,6 +33,8 @@ sealed class WaveformRenderer : MonoBehaviour
 
     #endregion
 
+    float[] clipSampleData = new float[4096];
+
     #region MonoBehaviour implementation
 
     void Start()
@@ -47,12 +49,18 @@ sealed class WaveformRenderer : MonoBehaviour
         // Retrieve waveform data as a channel-strided data slice and then
         // update the line mesh with it.
         //
-        UpdateMesh(_input.audioDataSlice);
+        if (_input.source.clip.GetData(clipSampleData, _input.source.timeSamples))
+        {
+            using (clipSampleData.ViewAsNativeArray(out var audioData))
+            {
+                UpdateMesh(audioData);
 
-        // Draw the line mesh.
-        Graphics.DrawMesh
-          (_mesh, transform.localToWorldMatrix,
-           _material, gameObject.layer);
+                // Draw the line mesh.
+                Graphics.DrawMesh
+                  (_mesh, transform.localToWorldMatrix,
+                   _material, gameObject.layer);
+            }
+        }
     }
 
     void OnDestroy()

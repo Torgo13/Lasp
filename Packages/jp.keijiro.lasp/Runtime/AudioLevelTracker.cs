@@ -2,6 +2,8 @@ using UnityEngine;
 
 namespace Lasp
 {
+    public enum FilterType { Bypass, LowPass, Band, HighPass}
+    
     //
     // Unity component used to track audio input level and drive other
     // components via UnityEvent
@@ -11,65 +13,68 @@ namespace Lasp
     {
         #region Editor attributes and public properties
 
-        // System default device switch
-        [SerializeField] bool _useDefaultDevice = true;
-        public bool useDefaultDevice
-          { get => _useDefaultDevice;
-            set => TrySelectDevice(null); }
-
-        // Device ID to use
-        [SerializeField] string _deviceID = "";
-        public string deviceID
-          { get => _deviceID;
-            set => TrySelectDevice(value); }
-
-        // Channel Selection
-        [SerializeField, Range(0, 15)] int _channel = 0;
-        public int channel
-          { get => _channel;
-            set => _channel = value; }
+        [SerializeField] AudioSource _source;
+        public AudioSource source
+        {
+            get => _source;
+            set => _source = value;
+        }
 
         // Filter type selection
         [SerializeField] FilterType _filterType = FilterType.Bypass;
         public FilterType filterType
-          { get => _filterType;
-            set => _filterType = value; }
+        {
+            get => _filterType;
+            set => _filterType = value;
+        }
 
         // Auto gain control switch
         [SerializeField] bool _autoGain = true;
         public bool autoGain
-          { get => _autoGain;
-            set => _autoGain = value; }
+        {
+            get => _autoGain;
+            set => _autoGain = value;
+        }
 
         // Manual input gain (only used when auto gain is off)
         [SerializeField, Range(-10, 40)] float _gain = 6;
         public float gain
-          { get => _gain;
-            set => _gain = value; }
+        {
+            get => _gain;
+            set => _gain = value;
+        }
 
         // Dynamic range in dB
         [SerializeField, Range(1, 40)] float _dynamicRange = 12;
         public float dynamicRange
-          { get => _dynamicRange;
-            set => _dynamicRange = value; }
+        {
+            get => _dynamicRange;
+            set => _dynamicRange = value;
+        }
 
         // Smooth fall animation switch
         [SerializeField] bool _smoothFall = true;
         public bool smoothFall
-          { get => _smoothFall;
-            set => _smoothFall = value; }
+        {
+            get => _smoothFall;
+            set => _smoothFall = value;
+        }
 
         // Fall animation speed
         [SerializeField, Range(0, 1)] float _fallSpeed = 0.3f;
         public float fallSpeed
-          { get => _fallSpeed;
-            set => _fallSpeed = value; }
+        {
+            get => _fallSpeed;
+            set => _fallSpeed = value;
+        }
 
         // Property binders
         [SerializeReference] PropertyBinder[] _propertyBinders = null;
         public PropertyBinder[] propertyBinders
-          { get => (PropertyBinder[])_propertyBinders.Clone();
-            set => _propertyBinders = value; }
+        {
+            get => (PropertyBinder[])_propertyBinders.Clone();
+            set => _propertyBinders = value;
+        }
 
         #endregion
 
@@ -79,16 +84,10 @@ namespace Lasp
         public float currentGain => _autoGain ? -_head : _gain;
 
         // Unprocessed input level (dBFS)
-        public float inputLevel
-          => Stream?.GetChannelLevel(_channel, _filterType) ?? kSilence;
+        public float inputLevel;
 
         // Curent level in the normalized scale
         public float normalizedLevel => _normalizedLevel;
-
-        // Raw wave audio data as NativeSlice
-        public Unity.Collections.NativeSlice<float> audioDataSlice
-          => Stream?.GetChannelDataSlice(channel)
-             ?? default(Unity.Collections.NativeSlice<float>);
 
         // Reset the auto gain state.
         public void ResetAutoGain() => _head = kSilence;
@@ -109,37 +108,58 @@ namespace Lasp
         // Hold and fall down animation parameter
         float _fall = 0;
 
-        // Check the status and try selecting the device.
-        void TrySelectDevice(string id)
-        {
-            // At the moment, we only supports selecting a device before the
-            // stream is initialized.
-            if (_stream != null)
-                throw new System.InvalidOperationException
-                  ("Stream is already open");
-
-            _useDefaultDevice = string.IsNullOrEmpty(id);
-            _deviceID = id;
-        }
-
-        // Input stream object with local cache
-        InputStream Stream
-          => (_stream != null && _stream.IsValid) ? _stream : CacheStream();
-
-        InputStream CacheStream()
-          => (_stream = _useDefaultDevice ?
-               AudioSystem.GetDefaultInputStream() :
-               AudioSystem.GetInputStream(_deviceID));
-
-        InputStream _stream;
-
+        //sampleSize
+        int sampleSize = 1024;
         #endregion
 
         #region MonoBehaviour implementation
 
+        public static float ComputeRMS(float[] buffer, int offset, int length)
+        {
+            // sum of squares
+            float sos = 0f;
+            float val;
+
+            if (offset + length > buffer.Length)
+            {
+                length = buffer.Length - offset;
+            }
+
+            for (int i = 0; i < length; i++)
+            {
+                val = buffer[offset];
+                sos += val * val;
+                offset++;
+            }
+
+            // return sqrt of average
+            return Mathf.Sqrt(sos / length);
+        }
+
+        public static float ComputeDB(float[] buffer, int offset, int length)
+        {
+            float rms;
+
+            rms = ComputeRMS(buffer, offset, length);
+
+            // could divide rms by reference power, simplified version here with ref power of 1f.
+            // will return negative values: 0db is the maximum.
+            return 10 * Mathf.Log10(rms);
+        }
+
         void Update()
         {
-            var input = inputLevel;
+            float[] clipSampleData = new float[sampleSize];
+            source.clip.GetData(clipSampleData, source.timeSamples);
+            Vector2 Range = new Vector2(0, sampleSize);
+            switch (filterType)
+            {
+                case FilterType.LowPass: Range.y = sampleSize / 3; break;
+                case FilterType.Band: Range.x = sampleSize / 3; Range.y = sampleSize / 3 * 2; break;
+                case FilterType.HighPass: Range.x = sampleSize / 3 * 2; break;
+                default: break;
+            }
+            var input = ComputeDB(clipSampleData, 0, sampleSize);
             var dt = Time.deltaTime;
 
             // Auto gain control

@@ -33,22 +33,22 @@ sealed class LissajousRenderer : MonoBehaviour
 
     #region MonoBehaviour implementation
 
-    Lasp.InputStream _stream;
+    //Lasp.InputStream _stream;
 
     void Start()
     {
         //
         // Create an input stream from the system default input device.
         //
-        _stream = Lasp.AudioSystem.GetDefaultInputStream();
+        //_stream = Lasp.AudioSystem.GetDefaultInputStream();
 
         // Check if it's a stereo device (Lissajous only works with stereo).
-        if (_stream.ChannelCount != 2)
+        /*if (_stream.ChannelCount != 2)
         {
             Debug.LogError("This example only supports a stereo device.");
             Destroy(gameObject);
             return;
-        }
+        }*/
 
         // Line mesh initialization
         InitializeMesh();
@@ -60,10 +60,10 @@ sealed class LissajousRenderer : MonoBehaviour
         // Retrieve interleaved waveform data from the stream. The left and
         // right channel data is interleaved in this slice.
         //
-        var slice = _stream.InterleavedDataSlice;
+        //var slice = _stream.InterleavedDataSlice;
 
         // Update the line mesh.
-        UpdateMesh(slice);
+        //UpdateMesh(slice);
 
         // Draw the line mesh.
         Graphics.DrawMesh

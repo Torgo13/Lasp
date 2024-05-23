@@ -29,7 +29,7 @@ sealed class SpectrumGraph : MonoBehaviour
 {
     #region Editable attributes
 
-    [SerializeField] Lasp.SpectrumAnalyzer _input = null;
+    //[SerializeField] Lasp.SpectrumAnalyzer _input = null;
     [SerializeField] bool _logScale = true;
     [SerializeField] Material _material = null;
 
@@ -43,8 +43,8 @@ sealed class SpectrumGraph : MonoBehaviour
         // Retrieve the spectrum data (linear or log-scaled) and then construct
         // a line strip mesh with it.
         //
-        var span = _logScale ? _input.logSpectrumSpan : _input.spectrumSpan;
-        if (_mesh == null) InitializeMesh(span); else UpdateMesh(span);
+        //var span = _logScale ? _input.logSpectrumSpan : _input.spectrumSpan;
+        //if (_mesh == null) InitializeMesh(span); else UpdateMesh(span);
 
         // Draw the line strip mesh.
         Graphics.DrawMesh
