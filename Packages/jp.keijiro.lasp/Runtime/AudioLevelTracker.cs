@@ -37,7 +37,7 @@ namespace Lasp
             
         // Filter type selection
         [SerializeField] float _filterFreq = 900.0f;
-        public FilterFreq filterFreq
+        public float filterFreq
           { get => _filterFreq;
             set => _filterFreq = value; }
 
